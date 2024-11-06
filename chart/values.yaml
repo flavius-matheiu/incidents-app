@@ -1,0 +1,72 @@
+---
+# yaml-language-server: $schema=./values.schema.json
+
+global:
+  domain: ae720e4.kyma.ondemand.com
+  imagePullSecret:
+    name: docker-registry
+  image:
+    registry: flaviusmatheiu433
+    tag: tst
+srv:
+  bindings:
+    db:
+      serviceInstanceName: hana
+    auth:
+      serviceInstanceName: xsuaa
+  image:
+    repository: incident-management-srv
+  resources:
+    limits:
+      ephemeral-storage: 1G
+      memory: 500M
+    requests:
+      ephemeral-storage: 1G
+      cpu: 500m
+      memory: 500M
+  health:
+    liveness:
+      path: /health
+    readiness:
+      path: /health
+hana-deployer:
+  image:
+    repository: incident-management-hana-deployer
+  bindings:
+    hana:
+      serviceInstanceName: hana
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 1G
+    requests:
+      cpu: 1000m
+      memory: 1G
+hana:
+  serviceOfferingName: hana
+  servicePlanName: hdi-shared
+xsuaa:
+  serviceOfferingName: xsuaa
+  servicePlanName: application
+  parameters:
+    xsappname: incidents
+    tenant-mode: dedicated
+    oauth2-configuration:
+      redirect-uris:
+        - https://*.ae720e4.kyma.ondemand.com/**
+html5-apps-deployer:
+  image:
+    repository: incident-management-html5-deployer
+  bindings:
+    html5:
+      serviceInstanceName: html5
+  env:
+    SAP_CLOUD_SERVICE: incidents
+backendDestinations:
+  srv-api:
+    service: srv
+destination:
+  serviceOfferingName: destination
+  servicePlanName: lite
+  parameters:
+    HTML5Runtime_enabled: true
